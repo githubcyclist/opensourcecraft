@@ -1,4 +1,4 @@
-# opensourcecraft
+# OpenSourceCraft
 An open source Minecraft clone written using jMonkeyEngine.
 
 ## Run it
