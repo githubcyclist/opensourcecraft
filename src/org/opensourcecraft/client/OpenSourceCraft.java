@@ -4,12 +4,17 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
+import com.jme3.asset.AssetInfo;
+import com.jme3.asset.AssetKey;
+import com.jme3.asset.plugins.FileLocator;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.PhysicsControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.objects.PhysicsCharacter;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
@@ -22,16 +27,21 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.regex.Pattern;
 
+@SuppressWarnings("deprecation")
 public class OpenSourceCraft extends SimpleApplication implements ActionListener {
     
     private boolean left = false, right = false, up = false, down = false;
@@ -54,7 +64,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     
     private static AppSettings prgmSettings;
     
-    protected CharacterControl player;
+    protected BetterCharacterControl player;
     
     protected BulletAppState bulletAppState;
     
@@ -84,13 +94,13 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
 
     @Override
     public void simpleInitApp() {
+    	assetManager.registerLocator(System.getProperty("user.dir") + "/assets",  FileLocator.class);
        bulletAppState = new BulletAppState();
        stateManager.attach(bulletAppState);
        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
-       player = new CharacterControl(capsuleShape, 0.05f);
-       player.setJumpSpeed(20);
-       player.setFallSpeed(30);
-       player.setGravity(30);
+       player = new BetterCharacterControl();
+       player.setJumpForce(new Vector3f(0, 20, 0));
+       player.setGravity(new Vector3f(0, -30, 0));
        guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
        BitmapText ch = new BitmapText(guiFont, false);
        ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
@@ -106,7 +116,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
        /*AudioNode ambient = new AudioNode(assetManager,
                "Sounds/techbliss.ogg", false);
        ambient.play();*/
-       player.setPhysicsLocation(
+       player.warp(
                new Vector3f(MAP_X_MAX / 2, MAX_HEIGHT + 1, MAP_Z_MAX / 2));
        flyCam.setMoveSpeed(0.0f);
        flyCam.setRotationSpeed(5);
@@ -138,7 +148,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                     else if(texID == 2)
                     { texture = "Textures/gravel.jpg"; }
                 } else {
-                    texture = "Textures/grass.jpg";
+                    texture = "/Textures/grass.jpg";
                 }
                 prevHeight = randHeight;
                 makeCube(i, randHeight, i2, texture);
@@ -331,9 +341,8 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                                     results.getClosestCollision().getGeometry());
                                }
                            }
+                           results.getClosestCollision().getGeometry().removeControl(PhysicsControl.class);
                            
-                           bulletAppState.getPhysicsSpace().remove(
-                                   results.getClosestCollision().getGeometry());
                        }
                     }
                }
@@ -444,7 +453,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
             walkDirection.addLocal(camDir.negate());
         }
         player.setWalkDirection(walkDirection);
-        cam.setLocation(player.getPhysicsLocation());
+        cam.setLocation(null);
         for(Spatial s : animals) {
             if(new Random().nextInt(125) + 1 == 25) {
                 if(new Random().nextInt(2) + 1 == 1) {
