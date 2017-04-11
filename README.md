@@ -2,13 +2,18 @@
 An open source Minecraft clone written using jMonkeyEngine.
 
 ## I just wanna run it
-You will need the JDK. Assuming it's working, run the appropriate command for your platform in the repo directory:
+You will need the JDK, and Ant is recommended.
 
-### Windows
+Assuming everything's working, run the appropriate command in the repo directory:
+
+### Windows - No Ant
 `"ant/bin/ant.bat" run`
 
-### Linux
+### Linux - No Ant
 `./ant/bin/ant run`
+
+### Any Platform - With Ant
+`ant run`
 
 ## I wanna tinker!
 Again, the JDK is required. Also, the JMonkeyEngine SDK. https://github.com/jMonkeyEngine/sdk/releases
