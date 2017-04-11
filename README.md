@@ -5,10 +5,10 @@ An open source Minecraft clone written using jMonkeyEngine.
 You will need the JDK. Assuming it's working, run the appropriate command for your platform in the repo directory:
 
 ### Windows
-ant/bin/ant.cmd run
+`"ant/bin/ant.bat" run`
 
 ### Linux
-./ant/bin/ant run
+`./ant/bin/ant run`
 
 ## I wanna tinker!
 Again, the JDK is required. Also, the JMonkeyEngine SDK. https://github.com/jMonkeyEngine/sdk/releases
