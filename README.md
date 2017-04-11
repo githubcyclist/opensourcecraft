@@ -1,6 +1,9 @@
 # OpenSourceCraft
 An open source Minecraft clone written using jMonkeyEngine.
 
+## A word of caution before you run
+OpenSourceCraft is in an extremely early pre-release stage. Unless you know what you're doing or you want to help develop, it is not recommended to run it.
+
 ## I just wanna run it
 You will need the JDK, and Ant is recommended.
 
