@@ -19,10 +19,20 @@ Assuming everything's working, run the appropriate command in the repo directory
 `ant run`
 
 ## I wanna tinker!
-Again, the JDK is required. Also, the JMonkeyEngine SDK. https://github.com/jMonkeyEngine/sdk/releases
+Again, the JDK is required. Follow the instructions appropriate for your IDE below.
+
+### JMonkeyEngine SDK (https://github.com/jMonkeyEngine/sdk/releases)
 
 When downloading, select the appropriate binary (.sh or .exe). Run it, and install.
 
 Once it's installed, select File > Import Project > From Zip...
 
 If you haven't already, download the ZIP version. Select it and you're done!
+
+### Eclipse
+
+Hit the new project button on the toolbar. Select Java Project from Existing Ant Buildfile.
+
+Press Browse and navigate to the repo directory. Select build.xml and press OK.
+
+Enter your project name of choice ("OpenSourceCraft" recommended).
