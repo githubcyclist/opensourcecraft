@@ -5,6 +5,12 @@ A Minecraft clone written using jMonkeyEngine.
 OpenSourceCraft is in an extremely early pre-release stage, and the master branch is bleeding-edge and extremely unstable. If you are going to play, download a stable release. 
 
 ## I just wanna run it
+### The easy way (recommended)
+The Java Runtime Environment is required. Run this command in the repo's "dist" directory:
+
+
+Open the 
+### The hard way
 You will need the JDK, and Ant is recommended.
 
 Assuming everything's working, run the appropriate command in the repo directory:
