@@ -94,6 +94,8 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     protected static JTextField wsFieldOne = new JTextField("80", 5),
     		wsFieldTwo = new JTextField("80", 5),
   		  genHeightField = new JTextField("6", 5);
+   
+    protected static JPanel settingsPanel;
     
     public static void main(String[] args) {
     	java.awt.EventQueue.invokeLater(new Runnable() {
@@ -118,7 +120,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
 	          wsFieldOne.setHorizontalAlignment(JTextField.CENTER);
 	          wsFieldTwo.setHorizontalAlignment(JTextField.CENTER);
 	          genHeightField.setHorizontalAlignment(JTextField.CENTER);
-    	          JPanel settingsPanel = new JPanel();
+    	          settingsPanel = new JPanel();
     	          settingsPanel.setLayout(new GridBagLayout());
     	          JLabel exLabel = new JLabel("x");
     	          JButton playButton = new JButton("Play Game");
@@ -145,6 +147,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     	    	
     	    	public void openCanvas() {
     	    		craftFrame.setVisible(false);
+    	    		settingsPanel.setVisible(false);
     	    		craft.applySettings(new GameSettings(
     	    				Integer.parseInt(genHeightField.getText()),
     	    				Integer.parseInt(wsFieldOne.getText()),
