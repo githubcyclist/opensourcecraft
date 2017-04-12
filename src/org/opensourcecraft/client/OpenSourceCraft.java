@@ -43,6 +43,8 @@ import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -108,12 +110,16 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
 	          prgmSettings.setSamples(8);
 	          prgmSettings.setFullscreen(false);
 	          craft.setSettings(prgmSettings);
-			craft.createCanvas(); // create canvas!
+			craft.createCanvas();
 	          JmeCanvasContext ctx = (JmeCanvasContext) craft.getContext();
 	          ctx.setSystemListener(craft);
 	          gameCanvas = ctx.getCanvas();
 	          gameCanvas.setPreferredSize(new Dimension(1152, 864));
+	          wsFieldOne.setHorizontalAlignment(JTextField.CENTER);
+	          wsFieldTwo.setHorizontalAlignment(JTextField.CENTER);
+	          genHeightField.setHorizontalAlignment(JTextField.CENTER);
     	          JPanel settingsPanel = new JPanel();
+    	          settingsPanel.setLayout(new GridBagLayout());
     	          JLabel exLabel = new JLabel("x");
     	          JButton playButton = new JButton("Play Game");
     	          playButton.addActionListener(new java.awt.event.ActionListener() {
@@ -130,7 +136,10 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     	    
     	    	public void addComps(JComponent parent, Component...components) {
     	    		for(Component comp : components) {
-    	    			parent.add(comp);
+    	    			GridBagConstraints center = new GridBagConstraints();
+    	    	        center.anchor = GridBagConstraints.CENTER;
+    	    	        center.fill = GridBagConstraints.NONE;
+    	    			parent.add(comp, center);
     	    		}
     	    	}
     	    	
@@ -522,8 +531,9 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
            public void onAction(String name, boolean isPressed, float tpf) {
                 if(!isPressed) {
                 	inputManager.setCursorVisible(true);
-                	int result = JOptionPane.showOptionDialog(null, "", "Pause Menu",
-                			-1, JOptionPane.PLAIN_MESSAGE, null, new String[] {
+                	int result = JOptionPane.showOptionDialog(null, "================"
+                			+ "==============",
+                			"Pause Menu", -1, JOptionPane.PLAIN_MESSAGE, null, new String[] {
                 					"Continue Playing", "Quit"
                     }, "Missing");
                 	if(result == 0) {
