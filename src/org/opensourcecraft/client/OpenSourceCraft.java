@@ -89,8 +89,9 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     
     protected static OpenSourceCraft craft;
     
-    protected static JTextField wsFieldOne = new JTextField(5), wsFieldTwo = new JTextField(5),
-  		  genHeightField = new JTextField(5);
+    protected static JTextField wsFieldOne = new JTextField("80", 5),
+    		wsFieldTwo = new JTextField("80", 5),
+  		  genHeightField = new JTextField("6", 5);
     
     public static void main(String[] args) {
     	java.awt.EventQueue.invokeLater(new Runnable() {
@@ -521,7 +522,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
            public void onAction(String name, boolean isPressed, float tpf) {
                 if(!isPressed) {
                 	inputManager.setCursorVisible(true);
-                	int result = JOptionPane.showOptionDialog(null, "Pick an option:", "Pause Menu",
+                	int result = JOptionPane.showOptionDialog(null, "", "Pause Menu",
                 			-1, JOptionPane.PLAIN_MESSAGE, null, new String[] {
                 					"Continue Playing", "Quit"
                     }, "Missing");
@@ -529,6 +530,8 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                 		inputManager.setCursorVisible(false);
                 	} else if(result == 1) {
                 		System.exit(0);
+                	} else {
+                		inputManager.setCursorVisible(false);
                 	}
                 }
            }
