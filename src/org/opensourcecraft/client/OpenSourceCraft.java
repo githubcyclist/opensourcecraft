@@ -39,7 +39,11 @@ import com.jme3.system.JmeCanvasContext;
 
 import de.lessvoid.nifty.Nifty;
 
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +53,8 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.swing.*;
+
+import org.opensourcecraft.util.GameSettings;
 
 @SuppressWarnings("deprecation")
 public class OpenSourceCraft extends SimpleApplication implements ActionListener {
@@ -77,33 +83,79 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     
     protected BulletAppState bulletAppState;
     
+    protected static JFrame craftFrame;
+    
+    protected static Canvas gameCanvas;
+    
+    protected static OpenSourceCraft craft;
+    
+    protected static JTextField wsFieldOne = new JTextField(5), wsFieldTwo = new JTextField(5),
+  		  genHeightField = new JTextField(5);
+    
     public static void main(String[] args) {
     	java.awt.EventQueue.invokeLater(new Runnable() {
     	      public void run() {
-    	    	  OpenSourceCraft craft = new OpenSourceCraft();
-    	          craft.setShowSettings(false);
-    	          prgmSettings = new AppSettings(true);
-    	          prgmSettings.setTitle("OpenSourceCraft");
-    	          prgmSettings.setResolution(1152, 864);
-    	          prgmSettings.setSamples(8);
-    	          prgmSettings.setFullscreen(false);
-    	          craft.setSettings(prgmSettings);
-    	          craft.createCanvas(); // create canvas!
-    	          JmeCanvasContext ctx = (JmeCanvasContext) craft.getContext();
-    	          ctx.setSystemListener(craft);
-    	          ctx.getCanvas().setPreferredSize(new Dimension(1152, 864));
-    	          JFrame craftFrame = new JFrame("OSC");
-    	          craftFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	          craftFrame.setSize(1152, 900);
-    	          craftFrame.add(ctx.getCanvas());
+    	    	  craftFrame = new JFrame("OpenSourceCraft v0.4-snapshot");
+	          craftFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	          craftFrame.setSize(1152, 900);
+	          craftFrame.setLayout(new BorderLayout());
+	          craft = new OpenSourceCraft();
+	          craft.setShowSettings(false);
+	          prgmSettings = new AppSettings(true);
+	          prgmSettings.setTitle("OpenSourceCraft");
+	          prgmSettings.setResolution(1152, 864);
+	          prgmSettings.setSamples(8);
+	          prgmSettings.setFullscreen(false);
+	          craft.setSettings(prgmSettings);
+			craft.createCanvas(); // create canvas!
+	          JmeCanvasContext ctx = (JmeCanvasContext) craft.getContext();
+	          ctx.setSystemListener(craft);
+	          gameCanvas = ctx.getCanvas();
+	          gameCanvas.setPreferredSize(new Dimension(1152, 864));
+    	          JPanel settingsPanel = new JPanel();
+    	          JLabel exLabel = new JLabel("x");
+    	          JButton playButton = new JButton("Play Game");
+    	          playButton.addActionListener(new java.awt.event.ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) { openCanvas(); }
+    	        	  
+    	          });
+    	          addComps(settingsPanel, wsFieldOne, exLabel, wsFieldTwo,
+    	        		  genHeightField, playButton);
+    	          craftFrame.add(settingsPanel);
     	          craftFrame.setVisible(true);
     	      }
+    	    
+    	    	public void addComps(JComponent parent, Component...components) {
+    	    		for(Component comp : components) {
+    	    			parent.add(comp);
+    	    		}
+    	    	}
+    	    	
+    	    	public void openCanvas() {
+    	    		craftFrame.setVisible(false);
+    	    		craft.applySettings(new GameSettings(
+    	    				Integer.parseInt(genHeightField.getText()),
+    	    				Integer.parseInt(wsFieldOne.getText()),
+    	    				Integer.parseInt(wsFieldTwo.getText())
+    	    		));
+    	    		craftFrame.add(gameCanvas);
+    	    		craftFrame.setVisible(true);
+    	    	}
     	});
     }
     
-    public static final int MAX_HEIGHT = 6;
-    public static final int MAP_X_MAX = 80;
-    public static final int MAP_Z_MAX = 80;
+    @SuppressWarnings("static-access")
+	public void applySettings(GameSettings gs) {
+    	this.MAP_X_MAX = gs.mapXMax;
+  	  	this.MAP_Z_MAX = gs.mapZMax;
+  	  	this.MAX_HEIGHT = gs.maxHeight;
+    }
+    
+    public static int MAX_HEIGHT = 6;
+    public static int MAP_X_MAX = 80;
+    public static int MAP_Z_MAX = 80;
     int selectedTex = 0;
     BitmapText selectedBlockText;
     
@@ -310,6 +362,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+       inputManager.addMapping("Pause", new KeyTrigger(KeyInput.KEY_ESCAPE));
        inputManager.addListener(this, "Left");
        inputManager.addListener(this, "Right");
        inputManager.addListener(this, "Up");
@@ -463,6 +516,24 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                }
                
        }, "rightClick");
+       inputManager.addListener(new ActionListener() {
+
+           public void onAction(String name, boolean isPressed, float tpf) {
+                if(!isPressed) {
+                	inputManager.setCursorVisible(true);
+                	int result = JOptionPane.showOptionDialog(null, "Pick an option:", "Pause Menu",
+                			-1, JOptionPane.PLAIN_MESSAGE, null, new String[] {
+                					"Continue Playing", "Quit"
+                    }, "Missing");
+                	if(result == 0) {
+                		inputManager.setCursorVisible(false);
+                	} else if(result == 1) {
+                		System.exit(0);
+                	}
+                }
+           }
+           
+       }, "Pause");
        cam.setLocation(player.getPhysicsLocation());
       CollisionShape blockShape = CollisionShapeFactory.createMeshShape(rootNode);
       landscape = new RigidBodyControl(blockShape, 0);
