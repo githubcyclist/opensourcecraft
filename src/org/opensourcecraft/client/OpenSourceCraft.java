@@ -7,10 +7,10 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.plugins.FileLocator;
+import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.PhysicsControl;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -27,6 +27,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -34,12 +35,20 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
+import com.jme3.system.JmeCanvasContext;
 
+import de.lessvoid.nifty.Nifty;
+
+import java.awt.Dimension;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import javax.swing.*;
 
 @SuppressWarnings("deprecation")
 public class OpenSourceCraft extends SimpleApplication implements ActionListener {
@@ -64,26 +73,37 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     
     private static AppSettings prgmSettings;
     
-    protected BetterCharacterControl player;
+	protected CharacterControl player;
     
     protected BulletAppState bulletAppState;
     
     public static void main(String[] args) {
-        OpenSourceCraft craft = new OpenSourceCraft();
-        craft.setShowSettings(false);
-        prgmSettings = new AppSettings(true);
-        prgmSettings.setTitle("OpenSourceCraft");
-        prgmSettings.setResolution(1152, 864);
-        prgmSettings.setSamples(8);
-        prgmSettings.setVSync(true);
-        prgmSettings.setFullscreen(false);
-        craft.setSettings(prgmSettings);
-        craft.start();
+    	java.awt.EventQueue.invokeLater(new Runnable() {
+    	      public void run() {
+    	    	  OpenSourceCraft craft = new OpenSourceCraft();
+    	          craft.setShowSettings(false);
+    	          prgmSettings = new AppSettings(true);
+    	          prgmSettings.setTitle("OpenSourceCraft");
+    	          prgmSettings.setResolution(1152, 864);
+    	          prgmSettings.setSamples(8);
+    	          prgmSettings.setFullscreen(false);
+    	          craft.setSettings(prgmSettings);
+    	          craft.createCanvas(); // create canvas!
+    	          JmeCanvasContext ctx = (JmeCanvasContext) craft.getContext();
+    	          ctx.setSystemListener(craft);
+    	          ctx.getCanvas().setPreferredSize(new Dimension(1152, 864));
+    	          JFrame craftFrame = new JFrame("OSC");
+    	          craftFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	          craftFrame.setSize(1152, 900);
+    	          craftFrame.add(ctx.getCanvas());
+    	          craftFrame.setVisible(true);
+    	      }
+    	});
     }
     
-    public static final int MAX_HEIGHT = 60;
-    public static final int MAP_X_MAX = 32;
-    public static final int MAP_Z_MAX = 32;
+    public static final int MAX_HEIGHT = 6;
+    public static final int MAP_X_MAX = 80;
+    public static final int MAP_Z_MAX = 80;
     int selectedTex = 0;
     BitmapText selectedBlockText;
     
@@ -92,18 +112,26 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     protected HashMap<String, Integer> inventoryItems = new HashMap<String, Integer>();
     protected int inventorySelected = 0;
 
-    @Override
-    public void simpleInitApp() {
-    	assetManager.registerLocator(System.getProperty("user.dir") + "/assets",  FileLocator.class);
+    private Nifty nifty;
+    
+	@Override
+	public void simpleInitApp() {
+		NiftyJmeDisplay niftyDisplay = new NiftyJmeDisplay(
+                assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+		nifty = niftyDisplay.getNifty();
+	   assetManager.registerLocator(System.getProperty("user.dir") + "/assets",  FileLocator.class);
        bulletAppState = new BulletAppState();
        stateManager.attach(bulletAppState);
        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
-       player = new BetterCharacterControl();
-       player.setJumpForce(new Vector3f(0, 20, 0));
-       player.setGravity(new Vector3f(0, -30, 0));
+       player = new CharacterControl(capsuleShape, 1f);
+       player.setJumpSpeed(30);
+       player.setGravity(30);
        guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
        BitmapText ch = new BitmapText(guiFont, false);
-       ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
+       ch.setSize(guiFont.getCharSet().getRenderedSize() * 3);
        ch.setText("+");        // fake crosshairs :)
        ch.setLocalTranslation( // center
        settings.getWidth() / 2 - guiFont.getCharSet().getRenderedSize() / 3 * 2,
@@ -113,32 +141,69 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
        selectedBlockText.setText("Selected Block: Grass");
        selectedBlockText.setLocalTranslation(220, 20, 0);
        guiNode.attachChild(selectedBlockText);
-       /*AudioNode ambient = new AudioNode(assetManager,
-               "Sounds/techbliss.ogg", false);
-       ambient.play();*/
-       player.warp(
+       /* uncomment for background music
+        AudioNode ambient = new AudioNode(assetManager,
+              "Sounds/techbliss.ogg", false);
+       ambient.play();
+       */
+       
+       player.setPhysicsLocation(
                new Vector3f(MAP_X_MAX / 2, MAX_HEIGHT + 1, MAP_Z_MAX / 2));
-       flyCam.setMoveSpeed(0.0f);
+       flyCam.setMoveSpeed(13);
        flyCam.setRotationSpeed(5);
-       Node playerNode = new Node("Player");
        viewPort.setBackgroundColor(new ColorRGBA(0, 0.7f, 0.8f, 1));
-       int prevHeight = 0;
+       int prevHeight = MAX_HEIGHT / 2;
+       boolean hill;
+       if(new Random().nextInt(2) + 1 == 1) {
+    	   hill = false;
+       } else {
+    	   hill = true;
+       }
+       boolean downHill = false;
+       boolean extremeHill = false;
+       if(new Random().nextInt(20) + 1 == 10) {
+    	   extremeHill = true;
+       } else {
+    	   extremeHill = false;
+       }
+       int hillMax = randHeight() / 2;
+       int prevHillLoc = new Random().nextInt(MAP_X_MAX);
+       int prevHillMax = randHeight() / 2;
        for(int i = 0; i < MAP_X_MAX; i+=2) {
            for(int i2 = 0; i2 < MAP_Z_MAX; i2+=2) {
-               int randHeight = randHeight();
-               boolean successfulFind = false;
-               while(!successfulFind) {
-                   if(randHeight >= prevHeight - 2 ||
-                           randHeight >= prevHeight + 2 && randHeight / 2 % 2 != 0) {
-                       successfulFind = true;
-                       if(randHeight == prevHeight)
-                           prevHeight = randHeight();
-                   } else {
-                       randHeight = randHeight();
-                       successfulFind = false;
-                   }
+        	   if(!hill && new Random().nextInt(150) + 1 == new Random().nextInt(150) + 1
+        			   || i == prevHillLoc) {
+        		   hill = true;
+        	   	   prevHillLoc = i;
+        	   }
+               int randHeightChance = new Random().nextInt(10) + 1;
+               int newHeight = -1;
+               int maxPlusHeight = 5;
+               if(i == prevHillLoc) {
+        		   hill = true;
+        		   prevHillLoc = i;
+        	   }
+               if(hill)  {
+            	   maxPlusHeight = 7;
                }
-               randHeight = 58; // this line will make the world superflat
+               if(extremeHill) {
+            	   maxPlusHeight = 9;
+               }
+               if(downHill) {
+            	   maxPlusHeight = 3;
+               }
+               if(hill && newHeight >= hillMax) {
+        		   downHill = true;
+        	   }
+               if(randHeightChance <= maxPlusHeight) {
+            	   newHeight = prevHeight + 2;
+               } else {
+            	   newHeight = prevHeight - 4;
+               }
+               if(newHeight < 0) newHeight = prevHeight;
+               if(newHeight > MAX_HEIGHT) newHeight = MAX_HEIGHT - 2;
+               if(newHeight == prevHeight)
+                       prevHeight = randHeight();
                 String texture = "Textures/grass.jpg";
                 int otherChance = new Random().nextInt(125) + 1;
                 if(otherChance == 5) {
@@ -150,12 +215,12 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                 } else {
                     texture = "/Textures/grass.jpg";
                 }
-                prevHeight = randHeight;
-                makeCube(i, randHeight, i2, texture);
+                prevHeight = newHeight;
+                makeCube(i, newHeight, i2, texture);
                 int treeChance = new Random().nextInt(75) + 1;
                 if(treeChance == 25) {
-                    int i3final = randHeight + 2;
-                    for(int i3 = randHeight + 2; i3 < MAX_HEIGHT +
+                    int i3final = newHeight + 2;
+                    for(int i3 = newHeight + 2; i3 < MAX_HEIGHT +
                             new Random().nextInt(10) + 5; i3+=2) {
                         makeCube(i, i3, i2, "Textures/bark.jpg");
                         i3final+=2;
@@ -188,7 +253,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                     grassMat.setColor("Color", new ColorRGBA(0, 100, 0, 0));
                     grass.setMaterial(grassMat);
                     grass.setLocalTranslation(new Vector3f(
-                        i, randHeight+1, i2
+                        i, newHeight+1, i2
                     ));
                     rootNode.attachChild(grass);
                 }
@@ -200,14 +265,14 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                     flowerMat.setColor("Color", new ColorRGBA(0.8f, 0, 0, 0));
                     flower.setMaterial(flowerMat);
                     flower.setLocalTranslation(new Vector3f(
-                        i, randHeight+1, i2
+                        i, newHeight+1, i2
                     ));
                     rootNode.attachChild(flower);
                 }
-                makeCube(i, MAX_HEIGHT / 2, i2, "Textures/bedrock.jpg");
-                for(int y = MAX_HEIGHT - MAX_HEIGHT / 4; y > MAX_HEIGHT / 2; y-=2) {
+                makeCube(i, -5, i2, "Textures/bedrock.jpg");
+                /*for(int y = -5; y < MAX_HEIGHT / 4; y+=2) {
                     makeCube(i, y, i2, "Textures/stone.jpg");
-                }
+                }*/
                
            }
        }
@@ -398,45 +463,20 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                }
                
        }, "rightClick");
-      CollisionShape blockShape =
-                                    CollisionShapeFactory.createMeshShape(rootNode);
-                               landscape = new RigidBodyControl(blockShape, 0);
-                               rootNode.addControl(landscape);
+       cam.setLocation(player.getPhysicsLocation());
+      CollisionShape blockShape = CollisionShapeFactory.createMeshShape(rootNode);
+      landscape = new RigidBodyControl(blockShape, 0);
+       rootNode.addControl(landscape);
        bulletAppState.getPhysicsSpace().add(landscape);
        bulletAppState.getPhysicsSpace().add(player);
-       stateManager.attach(new AbstractAppState() {
-            @Override
-            public void initialize(AppStateManager stateManager, Application app) {
-                super.initialize(stateManager, app);
-                redefineKeys();
-                stateManager.detach(this);
-            } 
-       });
-    }
-    
-    public void redefineKeys() {
-        inputManager.deleteMapping(CameraInput.FLYCAM_FORWARD);
-        inputManager.deleteMapping(CameraInput.FLYCAM_BACKWARD);
-        inputManager.deleteMapping(CameraInput.FLYCAM_RISE);
-        inputManager.deleteMapping(CameraInput.FLYCAM_LOWER);
-        inputManager.deleteMapping(CameraInput.FLYCAM_ZOOMIN);
-        inputManager.deleteMapping(CameraInput.FLYCAM_ZOOMOUT);
-        inputManager.deleteMapping(CameraInput.FLYCAM_ROTATEDRAG);
-        inputManager.deleteMapping(CameraInput.FLYCAM_LOWER);
-        inputManager.deleteMapping(CameraInput.FLYCAM_INVERTY);
     }
     
     private Vector3f walkDirection = new Vector3f();
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
-    private boolean keyMappingsUpdated = false;
     
     @Override
     public void simpleUpdate(float tpf) {
-        if(!keyMappingsUpdated) {
-            inputManager.deleteMapping(CameraInput.FLYCAM_FORWARD);
-            keyMappingsUpdated = true;
-        }
         camDir.set(cam.getDirection()).multLocal(0.6f);
         camLeft.set(cam.getLeft()).multLocal(0.4f);
         walkDirection.set(0, 0, 0);
@@ -453,7 +493,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
             walkDirection.addLocal(camDir.negate());
         }
         player.setWalkDirection(walkDirection);
-        cam.setLocation(null);
+        cam.setLocation(player.getPhysicsLocation());
         for(Spatial s : animals) {
             if(new Random().nextInt(125) + 1 == 25) {
                 if(new Random().nextInt(2) + 1 == 1) {
@@ -479,9 +519,9 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
         cubeMaterial.setTexture("ColorMap", assetManager.loadTexture(tex));
         cubeGeom.setMaterial(cubeMaterial);
         cubeGeom.setLocalTranslation(x,y,z);
-        cubeGeom.addControl(new RigidBodyControl(
+        /*cubeGeom.addControl(new RigidBodyControl(
                 CollisionShapeFactory.createDynamicMeshShape(cubeGeom)
-        ));
+        ));*/
         rootNode.attachChild(cubeGeom);
         blocks.add(cubeGeom);
         //bulletAppState.getPhysicsSpace().add(cubeGeom);
