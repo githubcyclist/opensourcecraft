@@ -6,22 +6,28 @@ OpenSourceCraft is in an extremely early pre-release stage, and the master branc
 
 ## I just wanna run it
 ### The easy way (recommended)
-The Java Runtime Environment is required. Run this command in the repo's "dist" directory:
+The Java Runtime Environment is required. First, go to the "dist" directory in the repo.
 
+Depending on your operating system and configuration, you may need to take extra steps. On most systems, you can just double-click the file. On Linux, to allow execution by double-click:
 
-Open the 
+`chmod +x MyGame.jar`
+
+If you can't launch by double-click and don't know what to do, open a terminal or command prompt and run this command:
+
+`java -jar MyGame.jar`
+
 ### The hard way
 You will need the JDK, and Ant is recommended.
 
 Assuming everything's working, run the appropriate command in the repo directory:
 
-### Windows - No Ant
+#### Windows - No Ant
 `"ant/bin/ant.bat" run`
 
-### Linux - No Ant
+#### Linux - No Ant
 `./ant/bin/ant run`
 
-### Any Platform - With Ant
+#### Any Platform - With Ant
 `ant run`
 
 ## I wanna tinker!
