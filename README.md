@@ -48,3 +48,5 @@ Hit the new project button on the toolbar. Select Java Project from Existing Ant
 Press Browse and navigate to the repo directory. Select build.xml and press OK.
 
 Enter your project name of choice ("OpenSourceCraft" recommended).
+
+After you're done with that, go take a look at the wiki (https://github.com/githubcyclist/opensourcecraft/wiki). It explains how the game works.
