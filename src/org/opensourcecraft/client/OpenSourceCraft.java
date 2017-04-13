@@ -93,7 +93,10 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     
     protected static JTextField wsFieldOne = new JTextField("80", 5),
     		wsFieldTwo = new JTextField("80", 5),
-  		  genHeightField = new JTextField("6", 5);
+  		  genHeightField = new JTextField("10", 5);
+    
+    protected static JCheckBox bedrockChecker = new JCheckBox("Bedrock", true),
+    		stoneChecker = new JCheckBox("Stone", false);
    
     protected static JPanel settingsPanel;
     
@@ -101,25 +104,25 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     	java.awt.EventQueue.invokeLater(new Runnable() {
     	      public void run() {
     	    	  craftFrame = new JFrame("OpenSourceCraft v0.4-snapshot");
-	          craftFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	          craftFrame.setSize(1152, 900);
-	          craftFrame.setLayout(new BorderLayout());
-	          craft = new OpenSourceCraft();
-	          craft.setShowSettings(false);
-	          prgmSettings = new AppSettings(true);
-	          prgmSettings.setTitle("OpenSourceCraft");
-	          prgmSettings.setResolution(1152, 864);
-	          prgmSettings.setSamples(8);
-	          prgmSettings.setFullscreen(false);
-	          craft.setSettings(prgmSettings);
-			craft.createCanvas();
-	          JmeCanvasContext ctx = (JmeCanvasContext) craft.getContext();
-	          ctx.setSystemListener(craft);
-	          gameCanvas = ctx.getCanvas();
-	          gameCanvas.setPreferredSize(new Dimension(1152, 864));
-	          wsFieldOne.setHorizontalAlignment(JTextField.CENTER);
-	          wsFieldTwo.setHorizontalAlignment(JTextField.CENTER);
-	          genHeightField.setHorizontalAlignment(JTextField.CENTER);
+    	    	  craftFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	    	  craftFrame.setSize(1152, 900);
+    	    	  craftFrame.setLayout(new BorderLayout());
+    	    	  craft = new OpenSourceCraft();
+    	    	  craft.setShowSettings(false);
+    	    	  prgmSettings = new AppSettings(true);
+    	    	  prgmSettings.setTitle("OpenSourceCraft");
+    	    	  prgmSettings.setResolution(1152, 864);
+    	    	  prgmSettings.setSamples(8);
+    	    	  prgmSettings.setFullscreen(false);
+    	    	  craft.setSettings(prgmSettings);
+    	    	  craft.createCanvas();
+    	    	  JmeCanvasContext ctx = (JmeCanvasContext) craft.getContext();
+    	    	  ctx.setSystemListener(craft);
+    	    	  gameCanvas = ctx.getCanvas();
+    	    	  gameCanvas.setPreferredSize(new Dimension(1152, 864));
+    	    	  wsFieldOne.setHorizontalAlignment(JTextField.CENTER);
+    	    	  wsFieldTwo.setHorizontalAlignment(JTextField.CENTER);
+    	    	  genHeightField.setHorizontalAlignment(JTextField.CENTER);
     	          settingsPanel = new JPanel();
     	          settingsPanel.setLayout(new GridBagLayout());
     	          JLabel exLabel = new JLabel("x");
@@ -131,7 +134,7 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     	        	  
     	          });
     	          addComps(settingsPanel, wsFieldOne, exLabel, wsFieldTwo,
-    	        		  genHeightField, playButton);
+    	        		  genHeightField, bedrockChecker, stoneChecker, playButton);
     	          craftFrame.add(settingsPanel);
     	          craftFrame.setVisible(true);
     	      }
@@ -151,7 +154,9 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     	    		craft.applySettings(new GameSettings(
     	    				Integer.parseInt(genHeightField.getText()),
     	    				Integer.parseInt(wsFieldOne.getText()),
-    	    				Integer.parseInt(wsFieldTwo.getText())
+    	    				Integer.parseInt(wsFieldTwo.getText()),
+    	    				bedrockChecker.isSelected(),
+    	    				stoneChecker.isSelected()
     	    		));
     	    		craftFrame.add(gameCanvas);
     	    		craftFrame.setVisible(true);
@@ -164,11 +169,15 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     	this.MAP_X_MAX = gs.mapXMax;
   	  	this.MAP_Z_MAX = gs.mapZMax;
   	  	this.MAX_HEIGHT = gs.maxHeight;
+  	  	this.bedrock = gs.bedrock;
+  	  	this.stone = gs.stone;
     }
     
-    public static int MAX_HEIGHT = 6;
+    public static int MAX_HEIGHT = 10;
     public static int MAP_X_MAX = 80;
     public static int MAP_Z_MAX = 80;
+    public static boolean bedrock = true;
+    public static boolean stone = false;
     int selectedTex = 0;
     BitmapText selectedBlockText;
     
@@ -176,23 +185,16 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
     protected ArrayList<Geometry> blocks = new ArrayList<Geometry>();
     protected HashMap<String, Integer> inventoryItems = new HashMap<String, Integer>();
     protected int inventorySelected = 0;
-
-    private Nifty nifty;
     
 	@Override
 	public void simpleInitApp() {
-		NiftyJmeDisplay niftyDisplay = new NiftyJmeDisplay(
-                assetManager,
-                inputManager,
-                audioRenderer,
-                guiViewPort);
-		nifty = niftyDisplay.getNifty();
+		System.out.println("Bedrock: " + bedrock + ", Stone: " + stone);
 	   assetManager.registerLocator(System.getProperty("user.dir") + "/assets",  FileLocator.class);
        bulletAppState = new BulletAppState();
        stateManager.attach(bulletAppState);
        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
        player = new CharacterControl(capsuleShape, 1f);
-       player.setJumpSpeed(30);
+       player.setJumpSpeed(20);
        player.setGravity(30);
        guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
        BitmapText ch = new BitmapText(guiFont, false);
@@ -263,10 +265,10 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                if(randHeightChance <= maxPlusHeight) {
             	   newHeight = prevHeight + 2;
                } else {
-            	   newHeight = prevHeight - 4;
+            	   newHeight = prevHeight - 2;
                }
                if(newHeight < 0) newHeight = prevHeight;
-               if(newHeight > MAX_HEIGHT) newHeight = MAX_HEIGHT - 2;
+               if(newHeight > MAX_HEIGHT) newHeight = MAX_HEIGHT;
                if(newHeight == prevHeight)
                        prevHeight = randHeight();
                 String texture = "Textures/grass.jpg";
@@ -334,11 +336,14 @@ public class OpenSourceCraft extends SimpleApplication implements ActionListener
                     ));
                     rootNode.attachChild(flower);
                 }
-                makeCube(i, -5, i2, "Textures/bedrock.jpg");
-                /*for(int y = -5; y < MAX_HEIGHT / 4; y+=2) {
-                    makeCube(i, y, i2, "Textures/stone.jpg");
-                }*/
-               
+                if(bedrock) {
+                	makeCube(i, -5, i2, "Textures/bedrock.jpg");
+                }
+                if(stone) {
+                	for(int y = -5; y < MAX_HEIGHT / 4; y+=2) {
+                    	makeCube(i, y, i2, "Textures/stone.jpg");
+                	}
+                }
            }
        }
        for(int i2 = 0; i2 < new Random().nextInt(50) + 1; i2++) {
