@@ -39,7 +39,7 @@ When downloading, select the appropriate binary (.sh or .exe). Run it, and insta
 
 Once it's installed, select File > Import Project > From Zip...
 
-If you haven't already, download the ZIP version of OpenSourceCraft (github.com/githubcyclist/opensourcecraft/archive/master.zip). Select it and you're done!
+If you haven't already, download the ZIP version of OpenSourceCraft (https://github.com/githubcyclist/opensourcecraft/archive/master.zip). Select it and you're done!
 
 ### Eclipse
 
