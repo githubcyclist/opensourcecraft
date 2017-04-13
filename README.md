@@ -1,5 +1,5 @@
 # OpenSourceCraft
-A Minecraft clone written using jMonkeyEngine.
+A Minecraft clone written using Java and jMonkeyEngine.
 
 ## A word of caution before you run
 OpenSourceCraft is in an extremely early pre-release stage, and the master branch is bleeding-edge and extremely unstable. If you are going to play, download a stable release. 
